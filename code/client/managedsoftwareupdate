@@ -238,6 +238,9 @@ def doInstallTasks(do_apple_updates, only_unattended=False):
             munkicommon.savereport()
             raise
 
+    munkicommon.report['RestartNeeded'] = (
+        munki_need_to_restart or apple_need_to_restart)
+    munkicommon.report['EndTime'] = munkicommon.format_time()
     munkicommon.savereport()
     return munki_need_to_restart or apple_need_to_restart
 

@@ -496,13 +496,14 @@ def display_error(msg, *args):
 
 
 def format_time(timestamp=None):
-    """Return timestamp as an ISO 8601 formatted string, in the current
-    timezone.
-    If timestamp isn't given the current time is used."""
+    """Return timestamp as string that looks like str(NSDate.new())
+    (which currently looks like '2015-02-05 22:39:15 +0000')
+    If timestamp isn't given the current time is used.
+    This function used to call Foundation NSDate methods, but now
+    we're using just Python."""
     if timestamp is None:
-        return str(NSDate.new())
-    else:
-        return str(NSDate.dateWithTimeIntervalSince1970_(timestamp))
+        timestamp = time.gmtime()
+    return time.strftime('%Y-%m-%d %H:%M:%S +0000', timestamp)
 
 
 def validateDateFormat(datetime_string):
