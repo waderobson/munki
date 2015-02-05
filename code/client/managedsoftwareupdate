@@ -264,10 +264,23 @@ def doRestart():
     else:
         munkicommon.display_info(restartMessage)
 
-    # check current console user
-    consoleuser = munkicommon.getconsoleuser()
-    if not consoleuser or consoleuser == u'loginwindow':
-        # no-one is logged in or we're at the loginwindow
+    # check current console user without calling OS X frameworks
+    # in at least some circumstances, calling an OS X framework after an OS X
+    # update, but before restart has caused a crash, followed by no restart
+    # and then "bad things". So we avoid.
+    if os.stat('/dev/console').st_uid == 0:
+        # /dev/console owned by uid 0 (root) could mean one of three things:
+        #   1) No current GUI user (most common case)
+        #   2) Root account enabled and logged in via the GUI (uncommon)
+        #   3) Root account enabled, logged in via the GUI, but switched out
+        #      via Fast User switching (very uncommon!)
+        #
+        # We cannot distinguish between 2 and 3 without calling OS X 
+        # frameworks. (we can distinguish between 1 and [2/3] by looking at the
+        # output of `who`. In cases 1 and 3 we can't notify at the GUI and
+        # should just restart. So we won't worry about case 2 (which in the real
+        # world should be rare) and treat it like 1 and 3. IOW, if /dev/console
+        # is owned by root, just restart.
         time.sleep(5)
         dummy_retcode = subprocess.call(['/sbin/shutdown', '-r', 'now'])
     else:
@@ -602,6 +615,11 @@ def main():
     # start a new report
     munkicommon.report['StartTime'] = munkicommon.format_time()
     munkicommon.report['RunType'] = runtype
+    munkicommon.report['ManagedInstallVersion'] = munkicommon.get_version()
+    munkicommon.report['AvailableDiskSpace'] = (
+        munkicommon.getAvailableDiskSpace())
+    munkicommon.report['ConsoleUser'] = (
+        munkicommon.getconsoleuser() or '<None>')
     # Clearing arrays must be run before any call to display_warning/error.
     munkicommon.report['Errors'] = []
     munkicommon.report['Warnings'] = []
@@ -915,9 +933,21 @@ def main():
             if os.path.exists(checkandinstallatstartupflag):
                 os.unlink(checkandinstallatstartupflag)
 
+    if mustrestart:
+        # minimize what we do before restarting; we more we do, the more
+        # likely we'll trigger something bad and not properly restart
+        # we skip reporting and don't run the postflight script
+        #
+        # TO-DO: (possibly) set a flag that causes the
+        # com.googlecode.munki.managedsoftwareupdate-loginwindow LaunchAgent
+        # to run at the next restart and do our postflight tasks
+        # (reporting, running the postflight)
+        munkicommon.log("Skipping postflight tasks due to needed restart...")
+        doRestart()
+        sys.exit()
+
     # finish our report
     munkicommon.report['EndTime'] = munkicommon.format_time()
-    munkicommon.report['ManagedInstallVersion'] = munkicommon.get_version()
     munkicommon.report['AvailableDiskSpace'] = \
                                         munkicommon.getAvailableDiskSpace()
     munkicommon.report['ConsoleUser'] = munkicommon.getconsoleuser() or \
@@ -961,8 +991,6 @@ def main():
     if mustlogout:
         # not handling this currently
         pass
-    if mustrestart:
-        doRestart()
     elif munkicommon.munkistatusoutput:
         munkistatus.quit()
 
