@@ -1445,6 +1445,7 @@ def parsePkgRefs(filename, path_to_pkg=None):
     dom = minidom.parse(filename)
     pkgrefs = dom.getElementsByTagName('pkg-info')
     if pkgrefs:
+        # this is a PackageInfo file
         for ref in pkgrefs:
             keys = ref.attributes.keys()
             if 'identifier' in keys and 'version' in keys:
@@ -1460,11 +1461,14 @@ def parsePkgRefs(filename, path_to_pkg=None):
                         pkginfo['installed_size'] = int(
                             payloads[0].attributes[
                                 'installKBytes'].value.encode('UTF-8'))
-                if not pkginfo in info:
-                    info.append(pkginfo)
+                    if not pkginfo in info:
+                        info.append(pkginfo)
+                # if there isn't a payload, no receipt is left by a flat
+                # pkg, so don't add this to the info array
     else:
         pkgrefs = dom.getElementsByTagName('pkg-ref')
         if pkgrefs:
+            # this is a Distribution or .dist file
             pkgref_dict = {}
             for ref in pkgrefs:
                 keys = ref.attributes.keys()
@@ -1548,8 +1552,20 @@ def getFlatPackageInfo(pkgpath):
                 else:
                     display_warning("An error occurred while extracting %s: %s"
                                     % (toc_entry, err))
-            # If the TOC entry matches "Distribution" at the top level, get it
-            elif toc_entry.startswith('Distribution') and len(infoarray) == 0:
+            # If there are PackageInfo files elsewhere, gather them up
+            elif toc_entry.endswith('.pkg/PackageInfo'):
+                cmd_extract = ['/usr/bin/xar', '-xf', abspkgpath, toc_entry]
+                result = subprocess.call(cmd_extract)
+                if result == 0:
+                    packageinfoabspath = os.path.abspath(
+                        os.path.join(pkgtmp, toc_entry))
+                    infoarray.extend(parsePkgRefs(packageinfoabspath))
+                else:
+                    display_warning("An error occurred while extracting %s: %s"
+                                    % (toc_entry, err))
+        if len(infoarray) == 0:
+            for toc_entry in [item for item in toc
+                              if item.startswith('Distribution')]:
                 # Extract the Distribution file
                 cmd_extract = ['/usr/bin/xar', '-xf', abspkgpath, toc_entry]
                 result = subprocess.call(cmd_extract)
@@ -1562,17 +1578,7 @@ def getFlatPackageInfo(pkgpath):
                 else:
                     display_warning("An error occurred while extracting %s: %s"
                                     % (toc_entry, err))
-            # If there are PackageInfo files elsewhere, gather them up
-            elif toc_entry.endswith('.pkg/PackageInfo'):
-                cmd_extract = ['/usr/bin/xar', '-xf', abspkgpath, toc_entry]
-                result = subprocess.call(cmd_extract)
-                if result == 0:
-                    packageinfoabspath = os.path.abspath(
-                        os.path.join(pkgtmp, toc_entry))
-                    infoarray.extend(parsePkgRefs(packageinfoabspath))
-                else:
-                    display_warning("An error occurred while extracting %s: %s"
-                                    % (toc_entry, err))
+
         if len(infoarray) == 0:
             display_warning('No valid Distribution or PackageInfo found.')
     else:
