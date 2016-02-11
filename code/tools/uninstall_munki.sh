@@ -14,6 +14,7 @@ rm -f /Library/LaunchDaemons/com.googlecode.munki.*
 rm -f /Library/LaunchAgents/com.googlecode.munki.*
 rm -rf '/Library/Managed Installs'
 rm -rf /usr/local/munki
+rm -rf '/Library/Application Support/munki'
 pkgutil --forget com.googlecode.munki.core
 pkgutil --forget com.googlecode.munki.admin
 pkgutil --forget com.googlecode.munki.app

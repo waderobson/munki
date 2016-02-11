@@ -2414,7 +2414,7 @@ def getMachineFacts():
 CONDITIONS = {}
 def getConditions():
     """Fetches key/value pairs from condition scripts
-    which can be placed into /usr/local/munki/conditions"""
+    which can be placed into /Library/Application Support/munki/conditions"""
     global CONDITIONS
     if not CONDITIONS:
         # define path to conditions directory which would contain
@@ -2449,7 +2449,7 @@ def getConditions():
                 except utils.RunExternalScriptError, err:
                     print >> sys.stderr, str(err)
         else:
-            # /usr/local/munki/conditions does not exist
+            # /Library/Application Support/munki/conditions does not exist
             pass
         if (os.path.exists(conditionalitemspath) and
                 validPlist(conditionalitemspath)):

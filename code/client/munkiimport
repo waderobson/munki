@@ -607,7 +607,7 @@ def makePkgInfo(options=None, test_mode=False):
     makepkginfo_path = os.path.join(mydir, 'makepkginfo')
     if not os.path.exists(makepkginfo_path):
         # didn't find it; assume the default install path
-        makepkginfo_path = '/usr/local/munki/makepkginfo'
+        makepkginfo_path = '/Library/Application Support/munki/makepkginfo'
     if test_mode:
         # prepend verification option if in test mode
         options = ['--verify-options-only'] + options
@@ -652,7 +652,7 @@ def makeCatalogs():
     makecatalogs_path = os.path.join(mydir, 'makecatalogs')
     if not os.path.exists(makecatalogs_path):
         # didn't find it; assume the default install path
-        makecatalogs_path = '/usr/local/munki/makecatalogs'
+        makecatalogs_path = '/Library/Application Support/munki/makecatalogs'
     if not repoAvailable():
         raise RepoCopyError('Could not connect to munki repo.')
     if not VERBOSE:

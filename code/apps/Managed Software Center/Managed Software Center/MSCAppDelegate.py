@@ -82,7 +82,7 @@ class MSCAppDelegate(NSObject):
         self.statusController.registerForNotifications()
 
         # user may have launched the app manually, or it may have
-        # been launched by /usr/local/munki/managedsoftwareupdate
+        # been launched by /Library/Application Support/munki/managedsoftwareupdate
         # to display available updates
         if munki.thereAreUpdatesToBeForcedSoon(hours=2):
             # skip the check and just display the updates
