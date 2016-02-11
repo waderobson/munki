@@ -269,7 +269,7 @@ PKGTMP=`mktemp -d -t munkipkg`
 
 #########################################
 ## core munki tools                    ##
-## /Library/Application Support/munki, minus admin tools ##
+## /Library/Application Support/munki/bin, minus admin tools ##
 ## plus /Library/Managed Installs      ##
 #########################################
 echo
@@ -278,37 +278,37 @@ echo "Creating core package template..."
 # Create directory structure.
 COREROOT="$PKGTMP/munki_core"
 mkdir -m 1775 "$COREROOT"
-mkdir -p "$COREROOT/Library/Application Support/munki/munkilib"
+mkdir -p "$COREROOT/Library/Application Support/munki/bin/munkilib"
 chmod -R 755 "$COREROOT/usr"
 # Copy command line utilities.
 # edit this if list of tools changes!
 for TOOL in launchapp logouthelper managedsoftwareupdate supervisor ptyexec
 do
-	cp -X "$MUNKIROOT/code/client/$TOOL" "$COREROOT/Library/Application Support/munki/" 2>&1
+	cp -X "$MUNKIROOT/code/client/$TOOL" "$COREROOT/Library/Application Support/munki/bin/" 2>&1
 done
 # Copy python library.
-cp -X "$MUNKIROOT/code/client/munkilib/"*.py "$COREROOT/Library/Application Support/munki/munkilib/"
+cp -X "$MUNKIROOT/code/client/munkilib/"*.py "$COREROOT/Library/Application Support/munki/bin/munkilib/"
 # Copy munki version.
-cp -X "$MUNKIROOT/code/client/munkilib/version.plist" "$COREROOT/Library/Application Support/munki/munkilib/"
+cp -X "$MUNKIROOT/code/client/munkilib/version.plist" "$COREROOT/Library/Application Support/munki/bin/munkilib/"
 # svnversion file was used when we were using subversion
 # we don't need this file if we have an updated get_version method in munkicommon.py
 if [ "$SVNREV" -lt "1302" ]; then
-    echo $SVNREV > "$COREROOT/Library/Application Support/munki/munkilib/svnversion"
+    echo $SVNREV > "$COREROOT/Library/Application Support/munki/bin/munkilib/svnversion"
 fi
 
 # add Build Number and Git Revision to version.plist
-/usr/libexec/PlistBuddy -c "Delete :BuildNumber" "$COREROOT/Library/Application Support/munki/munkilib/version.plist" 2>/dev/null
-/usr/libexec/PlistBuddy -c "Add :BuildNumber string $SVNREV" "$COREROOT/Library/Application Support/munki/munkilib/version.plist"
-/usr/libexec/PlistBuddy -c "Delete :GitRevision" "$COREROOT/Library/Application Support/munki/munkilib/version.plist" 2>/dev/null
-/usr/libexec/PlistBuddy -c "Add :GitRevision string $GITREV" "$COREROOT/Library/Application Support/munki/munkilib/version.plist"
+/usr/libexec/PlistBuddy -c "Delete :BuildNumber" "$COREROOT/Library/Application Support/munki/bin/munkilib/version.plist" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Add :BuildNumber string $SVNREV" "$COREROOT/Library/Application Support/munki/bin/munkilib/version.plist"
+/usr/libexec/PlistBuddy -c "Delete :GitRevision" "$COREROOT/Library/Application Support/munki/bin/munkilib/version.plist" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Add :GitRevision string $GITREV" "$COREROOT/Library/Application Support/munki/bin/munkilib/version.plist"
 # Set permissions.
-chmod -R go-w "$COREROOT/Library/Application Support/munki"
-chmod +x "$COREROOT/Library/Application Support/munki"
-#chmod +x "$COREROOT/Library/Application Support/munki/munkilib/"*.py
+chmod -R go-w "$COREROOT/Library/Application Support/munki/bin"
+chmod +x "$COREROOT/Library/Application Support/munki/bin"
+#chmod +x "$COREROOT/Library/Application Support/munki/bin/munkilib/"*.py
 
 # make paths.d file
 mkdir -p "$COREROOT/private/etc/paths.d"
-echo "/Library/Application Support/munki" > "$COREROOT/private/etc/paths.d/munki"
+echo "/Library/Application Support/munki/bin" > "$COREROOT/private/etc/paths.d/munki"
 chmod -R 755 "$COREROOT/private"
 
 # Create directory structure for /Library/Managed Installs.
@@ -327,7 +327,7 @@ makeinfo core "$PKGTMP/info" "$PKGID" "$VERSION" $CORESIZE $NFILES norestart
 
 #########################################
 ## admin munki tools                   ##
-## /Library/Application Support/munki admin tools        ##
+## /Library/Application Support/munki/bin admin tools        ##
 #########################################
 
 echo "Creating admin package template..."
@@ -335,21 +335,21 @@ echo "Creating admin package template..."
 # Create directory structure.
 ADMINROOT="$PKGTMP/munki_admin"
 mkdir -m 1775 "$ADMINROOT"
-mkdir -p "$ADMINROOT/Library/Application Support/munki"
+mkdir -p "$ADMINROOT/Library/Application Support/munki/bin"
 chmod -R 755 "$ADMINROOT/usr"
 # Copy command line admin utilities.
 # edit this if list of tools changes!
 for TOOL in makecatalogs makepkginfo manifestutil munkiimport
 do
-	cp -X "$MUNKIROOT/code/client/$TOOL" "$ADMINROOT/Library/Application Support/munki/" 2>&1
+	cp -X "$MUNKIROOT/code/client/$TOOL" "$ADMINROOT/Library/Application Support/munki/bin/" 2>&1
 done
 # Set permissions.
-chmod -R go-w "$ADMINROOT/Library/Application Support/munki"
-chmod +x "$ADMINROOT/Library/Application Support/munki"
+chmod -R go-w "$ADMINROOT/Library/Application Support/munki/bin"
+chmod +x "$ADMINROOT/Library/Application Support/munki/bin"
 
 # make paths.d file
 mkdir -p "$ADMINROOT/private/etc/paths.d"
-echo "/Library/Application Support/munki" > "$ADMINROOT/private/etc/paths.d/munki"
+echo "/Library/Application Support/munki/bin" > "$ADMINROOT/private/etc/paths.d/munki"
 chmod -R 755 "$ADMINROOT/private"
 
 # Create package info file.

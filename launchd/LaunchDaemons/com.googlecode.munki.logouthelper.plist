@@ -6,7 +6,7 @@
   <string>com.googlecode.munki.logouthelper</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/Library/Application Support/munki/logouthelper</string>
+    <string>/Library/Application Support/munki/bin/logouthelper</string>
   </array>
   <key>RunAtLoad</key>
   <false/>

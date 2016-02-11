@@ -10,11 +10,11 @@
   </array>
   <key>ProgramArguments</key>
   <array>
-    <string>/Library/Application Support/munki/supervisor</string>
+    <string>/Library/Application Support/munki/bin/supervisor</string>
     <string>--timeout</string>
     <string>43200</string>
     <string>--</string>
-    <string>/Library/Application Support/munki/managedsoftwareupdate</string>
+    <string>/Library/Application Support/munki/bin/managedsoftwareupdate</string>
     <string>--logoutinstall</string>
   </array>
   <key>RunAtLoad</key>

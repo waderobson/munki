@@ -10,7 +10,7 @@
   </array>
   <key>ProgramArguments</key>
   <array>
-    <string>/Library/Application Support/munki/launchapp</string>
+    <string>/Library/Application Support/munki/bin/launchapp</string>
     <string>-a</string>
     <string>/Applications/Managed Software Center.app</string>
   </array>
