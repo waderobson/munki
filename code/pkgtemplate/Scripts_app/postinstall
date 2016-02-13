@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# If /usr/local/munki exists, replace it with a symlink to
+# /Library/Application Support/munki/bin
+
+if [ -d "$3/usr/local/munki" ] ; then
+    /bin/rm -r "$3/usr/local/munki"
+    # make a symlink for the old munki location
+    /bin/ln -s "$3/Library/Application Support/munki/bin" \
+    "$3/usr/local/munki"
+fi
