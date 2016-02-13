@@ -1215,6 +1215,7 @@ def pref(pref_name):
         'PackageVerificationMode': 'hash',
         'FollowHTTPRedirects': 'none',
         'UnattendedAppleUpdates': False,
+        'AllowInsecureConnections': True
     }
     pref_value = CFPreferencesCopyAppValue(pref_name, BUNDLE_ID)
     if pref_value == None:
