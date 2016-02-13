@@ -1198,7 +1198,7 @@ def pref(pref_name):
     """
     default_prefs = {
         'ManagedInstallDir': '/Library/Managed Installs',
-        'SoftwareRepoURL': 'http://munki/repo',
+        'SoftwareRepoURL': '',
         'ClientIdentifier': '',
         'LogFile': '/Library/Managed Installs/Logs/ManagedSoftwareUpdate.log',
         'LoggingLevel': 1,
