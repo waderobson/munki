@@ -30,3 +30,4 @@ code/apps/MunkiStatus/build/
 
 # ignore any pkgs build by tool scripts
 code/tools/munkitools*.pkg
+munkitools*.pkg
