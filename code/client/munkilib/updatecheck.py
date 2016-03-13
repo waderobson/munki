@@ -3491,6 +3491,25 @@ def getDataFromURL(url):
         munkicommon.display_warning('Error in getDataFromURL: %s', err)
         return ''
 
+def processHeaderExecutable(executable_path, url):
+    '''Passes url as argument to an executable and builds list from stdout. Returns
+    list as headers '''
+    if executable_path == '':
+        raise BaseException('No executable_path')
+    cmd = [executable_path, url]
+    proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    headers = []
+    while True:
+        line = proc.stdout.readline()
+        if line != '':
+            headers.append(line[:-1])
+        else:
+            break
+    return headers
+
+
 
 def getResourceIfChangedAtomically(
         url, destinationpath, message=None, resume=False, expected_hash=None,
@@ -3509,6 +3528,11 @@ def getResourceIfChangedAtomically(
     # </array>
     custom_headers = munkicommon.pref(
         munkicommon.ADDITIONAL_HTTP_HEADERS_KEY)
+    # If custom_headers contains a dictionary
+    if '__NSCFDictionary' in str(custom_headers.__class__):
+        if custom_headers['Executable']:
+            executable_path = custom_headers['Executable']
+            custom_headers = processHeaderExecutable(executable_path, url)
 
     return fetch.getResourceIfChangedAtomically(url,
                                                 destinationpath,
