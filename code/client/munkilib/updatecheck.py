@@ -3491,24 +3491,30 @@ def getDataFromURL(url):
         munkicommon.display_warning('Error in getDataFromURL: %s', err)
         return ''
 
-def processHeaderExecutable(executable_path, url):
-    '''Passes url as argument to an executable and builds list from stdout. Returns
-    list as headers '''
-    if executable_path == '':
-        raise BaseException('No executable_path')
-    cmd = [executable_path, url]
-    proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    headers = []
-    while True:
-        line = proc.stdout.readline()
-        if line != '':
-            headers.append(line[:-1])
-        else:
-            break
-    return headers
 
+def processHeaderExecutable(executable_path, url):
+    '''Passes url as argument to an executable and builds list from stdout.'''
+    headers = []
+    if os.path.exists(executable_path):
+        if os.access(executable_path, os.X_OK):
+            cmd = [executable_path, url]
+            proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
+                                    stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            while True:
+                line = proc.stdout.readline()
+                if line != '':
+                    headers.append(line[:-1])
+                else:
+                    break
+        else:
+            munkicommon.display_warning('Header executable '
+                                        'is not executable!!')
+    else:
+        munkicommon.display_warning('Can\'t find executable at path %s',
+                                    executable_path)
+    return headers
 
 
 def getResourceIfChangedAtomically(
@@ -3533,6 +3539,8 @@ def getResourceIfChangedAtomically(
         if custom_headers['Executable']:
             executable_path = custom_headers['Executable']
             custom_headers = processHeaderExecutable(executable_path, url)
+        else:
+            munkicommon.display_warning('No header executable path found')
 
     return fetch.getResourceIfChangedAtomically(url,
                                                 destinationpath,
