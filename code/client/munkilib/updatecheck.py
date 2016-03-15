@@ -3492,9 +3492,14 @@ def getDataFromURL(url):
         return ''
 
 
-def processHeaderExecutable(executable_path, url):
-    '''Passes url as argument to an executable and builds list from stdout.'''
-    headers = []
+def processHeaderExecutable(executable_path, url, custom_headers):
+    '''Passes url as argument to an executable and appends
+    custom_headers list from stdout.
+    '''
+    # custom_headers comes in imuteable 
+    for header in custom_headers:
+                custom_headers = []
+                custom_headers.append(header)
     if os.path.exists(executable_path):
         if os.access(executable_path, os.X_OK):
             cmd = [executable_path, url]
@@ -3505,7 +3510,7 @@ def processHeaderExecutable(executable_path, url):
             while True:
                 line = proc.stdout.readline()
                 if line != '':
-                    headers.append(line[:-1])
+                    custom_headers.append(line[:-1])
                 else:
                     break
         else:
@@ -3514,7 +3519,7 @@ def processHeaderExecutable(executable_path, url):
     else:
         munkicommon.display_warning('Can\'t find executable at path %s',
                                     executable_path)
-    return headers
+    return custom_headers
 
 
 def getResourceIfChangedAtomically(
@@ -3534,13 +3539,11 @@ def getResourceIfChangedAtomically(
     # </array>
     custom_headers = munkicommon.pref(
         munkicommon.ADDITIONAL_HTTP_HEADERS_KEY)
-    # If custom_headers contains a dictionary
-    if '__NSCFDictionary' in str(custom_headers.__class__):
-        if custom_headers['Executable']:
-            executable_path = custom_headers['Executable']
-            custom_headers = processHeaderExecutable(executable_path, url)
-        else:
-            munkicommon.display_warning('No header executable path found')
+    # If Header executable present append output to 
+    # custom_headers
+    if munkicommon.pref('HTTPHeaderExcutable'):
+        executable_path = munkicommon.pref('HTTPHeaderExcutable')
+        custom_headers = processHeaderExecutable(executable_path, url, custom_headers)
 
     return fetch.getResourceIfChangedAtomically(url,
                                                 destinationpath,
