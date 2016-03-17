@@ -30,6 +30,7 @@ import time
 import urllib2
 import urlparse
 import xattr
+import subprocess
 
 #our libs
 import keychain
@@ -121,9 +122,54 @@ def header_dict_from_list(array):
     return header_dict
 
 
+def useCloudProvider(options,cloud_provider):
+    """recieves options dictionary before gurl gets it.
+    Uses the URL key as argment to a user specified executable/script.
+    To use this function you need to have except 2 arguments.
+
+    /path/to/cloud_provider [arg1] [arg2]
+    arg1: the URL
+    arg2: is either 'headers' or 'query_parameters'
+    When 'headers' is called:
+        The script must return 1 header per line to stdout
+    When 'query_parameters' is called:
+        The script must return the entire query portion of
+        the URL on one line."""
+    executable_path = cloud_provider
+    if os.path.exists(executable_path):
+        if os.access(executable_path, os.X_OK):
+            for api_type in ['headers', 'query_parameters']:
+                cmd = [executable_path, options['url'], api_type]
+                proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                if api_type == 'headers':
+                    headers = []
+                    while True:
+                        line = proc.stdout.readline()
+                        if line != '':
+                            headers.append(line.rstrip('\n'))
+                        else:
+                            break
+                if api_type == 'query_parameters':
+                    query_parameters = proc.stdout.readline()
+        else:
+            munkicommon.display_warning('%s not executable',
+                                        executable_path)
+    else:
+        munkicommon.display_warning('CloudProvider not at path %s',
+                                    executable_path)
+    cloud_headers = header_dict_from_list(headers)
+    url_with_query = options['url'] + query_parameters.rstrip('\n')
+    options['url'] = url_with_query
+    options['additional_headers'].update(cloud_headers)
+    return options
+
+
 def get_url(url, destinationpath,
             custom_headers=None, message=None, onlyifnewer=False,
-            resume=False, follow_redirects=False):
+            resume=False, follow_redirects=False, cloud_provider=False):
     """Gets an HTTP or HTTPS URL and stores it in
     destination path. Returns a dictionary of headers, which includes
     http_result_code and http_result_description.
@@ -157,8 +203,11 @@ def get_url(url, destinationpath,
                'download_only_if_changed': onlyifnewer,
                'cache_data': cache_data,
                'logging_function': munkicommon.display_debug2}
+    # pass options to cloud plugin
+    # get new options
+    if cloud_provider: 
+        options = useCloudProvider(options,cloud_provider)
     munkicommon.display_debug2('Options: %s' % options)
-
     connection = Gurl.alloc().initWithOptions_(options)
     stored_percent_complete = -1
     stored_bytes_received = 0
@@ -246,6 +295,7 @@ def get_url(url, destinationpath,
 def getResourceIfChangedAtomically(url,
                                    destinationpath,
                                    custom_headers=None,
+                                   cloud_provider=None,
                                    expected_hash=None,
                                    message=None,
                                    resume=False,
@@ -297,6 +347,7 @@ def getResourceIfChangedAtomically(url,
         changed = getHTTPfileIfChangedAtomically(
             url, destinationpath,
             custom_headers=custom_headers,
+            cloud_provider=cloud_provider,
             message=message, resume=resume, follow_redirects=follow_redirects)
     elif url_parse.scheme == 'file':
         changed = getFileIfChangedAtomically(url_parse.path, destinationpath)
@@ -376,6 +427,7 @@ def getFileIfChangedAtomically(path, destinationpath):
 
 def getHTTPfileIfChangedAtomically(url, destinationpath,
                                    custom_headers=None,
+                                   cloud_provider=None,
                                    message=None, resume=False,
                                    follow_redirects=False):
     """Gets file from HTTP URL, checking first to see if it has changed on the
@@ -399,6 +451,7 @@ def getHTTPfileIfChangedAtomically(url, destinationpath,
         header = get_url(url,
                          destinationpath,
                          custom_headers=custom_headers,
+                         cloud_provider=cloud_provider,
                          message=message,
                          onlyifnewer=getonlyifnewer,
                          resume=resume,
